@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+# A simple script that manages network namespace routed through a wireguard interface
+# Usage:
+# $0 [up|down]
+# Some configuration is available through environment variables
+# See manual for details
+#
+# Author: Vladimir Timofeenko <vladimir@vtimofeenko.com>
+# Bugs-to: https://github.com/VTimofeenko/wireguard-namespace-service/issues
+# License: Unlicense
+
+set -euo pipefail
+set -o errtrace
+set -x
+
+BASE_CONF_DIR=${BASE_CONF_DIR:-'/etc/wireguard'}
+
+command="$1"
+conf_file="$2"
+
+# The default name to be used for link name, config file name, etc.
+# Useful to override all of them at the same time
+DEFAULT_NAME="wg0"
+
+NAMESPACE_NAME=${NAMESPACE_NAME:-${DEFAULT_NAME}}
+LINK_NAME=${LINK_NAME:-${DEFAULT_NAME}}
+WG_CONF_FILE=${WG_CONF_FILE:-"${BASE_CONF_DIR}/${conf_file:-"${DEFAULT_NAME}"}.conf"}
+
+trap down ERR
+
+up() {
+    if [ -z ${MY_IP+x} ]; then
+        echo "MY_IP variable is unset, please set it"
+        exit 1;
+    fi
+
+    ip netns add "$NAMESPACE_NAME"
+    # create the interface
+    ip link add "${LINK_NAME}" type wireguard
+    # move the ${LINK_NAME} device into netns
+    ip link set "${LINK_NAME}" netns "$NAMESPACE_NAME"
+    # set device config
+    ip netns exec "${NAMESPACE_NAME}" wg setconf "${LINK_NAME}" "${WG_CONF_FILE}"
+    ip -n "${NAMESPACE_NAME}" addr add "${MY_IP}" dev "${LINK_NAME}"
+    ip -n "${NAMESPACE_NAME}" link set mtu 1420 up dev "${LINK_NAME}"
+    # all routing will go through "${LINK_NAME}"
+    ip -j -n "${NAMESPACE_NAME}" route add default dev "${LINK_NAME}"
+    echo "Namespace ${NAMESPACE_NAME} is up"
+}
+
+down() {
+    ip -n "${NAMESPACE_NAME}" link set down dev "${LINK_NAME}"
+    ip -n "${NAMESPACE_NAME}" link del dev "${LINK_NAME}"
+    ip netns del "${NAMESPACE_NAME}"
+    echo "Namespace ${NAMESPACE_NAME} is down"
+}
+
+
+case "$command" in
+    up) up "$@" ;;
+    down) down "$@" ;;
+esac
