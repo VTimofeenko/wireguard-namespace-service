@@ -14,7 +14,12 @@ set -euo pipefail
 set -o errtrace
 set -x
 
-BASE_CONF_DIR=${BASE_CONF_DIR:-'/etc/wireguard'}
+# STOCK_SERVICE variable should be set by the accompanying systemd service
+if [ -z ${STOCK_SERVICE+x} ]; then
+    BASE_CONF_DIR=${CREDENTIALS_DIRECTORY:-'/etc/wireguard'}
+else
+    BASE_CONF_DIR=${BASE_CONF_DIR:-'/etc/wireguard'}
+fi
 
 command="$1"
 conf_file="$2"

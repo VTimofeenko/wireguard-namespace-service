@@ -5,3 +5,10 @@ repos:
       - id: script-must-not-have-extension
       - id: shellcheck
       - id: forbid-binary
+  - repo: local
+    hooks:
+      - id: systemd-analyze
+        name: systemd-analyze
+        entry: systemd-analyze --no-pager verify systemd/wg-netnamespace@.service
+        files: 'systemd/wg-netnamespace@.service'
+        language: system

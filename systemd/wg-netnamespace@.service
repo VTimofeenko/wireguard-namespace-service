@@ -1,0 +1,64 @@
+[Unit]
+Description=WireGuard isolated network namespace (%i)
+Wants=network-online.target nss-lookup.target
+After=network-online.target nss-lookup.target
+
+[Service]
+# See systemd.directives
+Type=oneshot
+# Set this in dropin
+# Environment=MY_IP=
+
+# This variable when set to something tells the underlying script to use CREDENTIALS_DIRECTORY
+Environment=STOCK_SERVICE=1
+ExecStart=wg_namespace_cli up %i
+ExecStop=wg_namespace_cli down %i
+RemainAfterExit=yes
+
+LoadCredential=%i.conf:/etc/wireguard/%i.conf
+
+; ConfigurationDirectory=wg_namespace_cli
+; ConfigurationDirectoryMode=0600
+
+# General protection settings
+CapabilityBoundingSet=CAP_SYS_ADMIN CAP_NET_ADMIN
+
+# These settings seem to break joining the namespace after it has been launched...
+# ProtectSystem=true
+# ProtectProc=noaccess
+# PrivateDevices=true
+# ProtectKernelTunables=true
+# ProtectKernelLogs=true
+# PrivateDevices=true
+# PrivateMounts=true
+# PrivateTmp=true
+# ProtectControlGroups=true
+# ProtectHome=true
+
+ProtectClock=true
+RestrictSUIDSGID=true
+ProtectHostname=true
+
+# Only allow IPv4 and IPv6
+RestrictAddressFamilies=AF_INET AF_INET6
+# AF_NETLINK is needed for ip netns add wg0
+RestrictAddressFamilies=AF_NETLINK
+
+NoNewPrivileges=true
+RestrictRealtime=true
+SystemCallFilter=~@cpu-emulation
+SystemCallFilter=~@obsolete
+LockPersonality=true
+SystemCallArchitectures=native
+MemoryDenyWriteExecute=true
+SystemCallFilter=~@clock
+SystemCallFilter=~@debug
+SystemCallFilter=~@module
+SystemCallFilter=~@reboot
+SystemCallFilter=~@privileged
+SystemCallFilter=~@mount
+SystemCallFilter=~@resources
+SystemCallFilter=~@chown
+
+[Install]
+WantedBy=multi-user.target
