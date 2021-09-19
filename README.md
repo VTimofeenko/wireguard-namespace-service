@@ -27,7 +27,12 @@ Where wg0 is the name of the config file in `/etc/wireguard`
 
 # Installation
 
-TODO
+On Gentoo you can install it from [nitratesky-overlay](https://github.com/VTimofeenko/nitratesky):
+
+    # eselect repository enable nitratesky
+    # emerge -a1 net-vpn/wireguard-namespace-service
+
+Otherwise, place `wg_namespace_cli` in `/usr/local/bin/`, or in a location of your choice inside `$PATH`.
 
 # Setup
 
