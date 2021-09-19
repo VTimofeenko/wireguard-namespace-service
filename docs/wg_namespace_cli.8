@@ -1,0 +1,112 @@
+." Process this file with
+." groff -man -Tascii
+."
+.TH "wg_namespace_cli" "1" "Sep 2021" "" ""
+
+.Sh NAME
+.B wg_namespace_cli
+\(en tool to manage isolated network namespace with traffic routed through WireGuard interface.
+
+.SH SYNOPSIS
+.B MY_IP="<IP>" wg_namespace_cli
+[
+.I up|down
+]
+.I config_file
+
+.SH DESCRIPTION
+.B wg_namespace_cli
+is a tool to bring up or down network namespaces traffic in which is routed
+through WireGuard interface. The interface itself is configured through
+.BR ip-link (8)
+and the IP address is assigned using
+.BR ip-address (8).
+The
+.BR wg (8)
+utility is used to apply the WireGuard config taken from
+.I config_file
+to the interface.
+
+The script's behavior can be influenced by a set of environment variables.
+See the
+.I ENVIRONMENT VARIABLES
+section below for a list of variables.
+
+The script also comes with a
+.BR systemd (1)
+unit that can be configured using the same set of environment variables
+using
+.I Environment=
+directives in a systemd drop-in.
+
+.SH COMMANDS
+.TP
+\fBup\fP \fIconfig_file\fP
+Brings the namespace up. Creates the namespace, creates a network
+link inside the new namespace. Then assigns WireGuard config to the created
+link and assigns the IP address to the link. Configures all routing in the
+namespace to go through the WireGuard interface. The interface takes the
+wireguard configuration file \fIconfig_file\fP.
+
+.TP
+\fBdown\fP
+Brings the namespace specified as \fINAMESPACE_NAME\fP environment variable down.
+
+.SH ENVIRONMENT VARIABLES
+.TP
+.I MY_IP
+The IP address to be assigned to the interface. Required.
+.TP
+.I BASE_CONF_DIR
+directory where the
+.B wg (8)
+Configuration file is located. If the script is launched from the systemd
+service provided with the package, it defaults to
+\fI$CREDENTIALS_DIRECTORY\fP populated using \fILoadCredential=\fP
+systemd directive. Otherwise, default value is /etc/wireguard.
+.TP
+.I NAMESPACE_NAME
+The name of network namespace to be created/deleted. Default: "wg0"
+.TP
+.I LINK_NAME
+The name of the link to be configured inside the namespace. Default: "wg0"
+.TP
+.I WG_CONF_FILE
+The path to configuration file that contains the WireGuard configuration.
+Default: "/etc/wireguard/wg0"
+
+
+.SH SETUP
+
+Setup the WireGuard configuration. See \fBwg (8)\fP section
+\fICONFIGURATION FILE FORMAT\fP.
+
+If using systemd service \(en create a service drop-in and specify the IP
+for the interface.
+
+    # systemd edit wg-netnamespace@wg0
+.br
+    [Service]
+.br
+    Environment=MY_IP=<IP_ADDRESS>
+
+Otherwise, run the \fBMY_IP=<IP_ADDRESS> wg_namespace_cli up wg0\fP
+
+.SH SEE ALSO
+.BR wg (8),
+.BR ip (8),
+.BR ip-link (8),
+.BR ip-address (8),
+.BR ip-default (8),
+
+.SH AUTHOR
+.B wg_namespace_cli
+was written by
+.MT vladimir@vtimofeenko.com
+Vladimir Timofeenko
+.ME .
+
+For project information, please see
+.UR https://github.com/VTimofeenko/wireguard-namespace-service
+GitHub page
+.UE .

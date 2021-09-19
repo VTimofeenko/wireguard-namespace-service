@@ -40,10 +40,11 @@ TODO
     Environment=MY_IP=10.8.1.101
     ```
 
-# Customizing
+# Configuration
 
-TODO
+See `man wg_namespace_cli` or the script itself for a list of environment variables.
 
 # Reference
 
 * [WireGuard Routing & Network Namespace Integration](https://www.wireguard.com/netns/)
+* [Similar project that relies on python to parse config file](https://github.com/dadevel/wg-netns)
