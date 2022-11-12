@@ -49,6 +49,10 @@ Otherwise, place `wg_namespace_cli` in `/usr/local/bin/`, or in a location of yo
 
 See `man wg_namespace_cli` or the script itself for a list of environment variables.
 
+# Nix version
+
+Nix version with a few extra tweaks is available as a flake [here](https://github.com/VTimofeenko/wg-namespace-flake).
+
 # Reference
 
 * [WireGuard Routing & Network Namespace Integration](https://www.wireguard.com/netns/)
